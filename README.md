@@ -1,4 +1,4 @@
-# TDR era dunetpc (tag v07\_06\_02 [redmine](https://cdcvs.fnal.gov/redmine/projects/dunetpc/repository/revisions/v07\_06\_02/show)
+# TDR era dunetpc (tag v07\_06\_02 [redmine](https://cdcvs.fnal.gov/redmine/projects/dunetpc/repository/revisions/v07\_06\_02/show))
 
 Note: the root directory must be named `dunetpc` or the build breaks :)
 
