@@ -1,0 +1,41 @@
+#include "standard_reco_dune35tdata.fcl"
+process_name: RecoRobust
+
+physics.producers.robusthit: @local::dune35t_robusthitfinder
+
+physics.reco: [ rns
+                #optical hit reco, flash, counter, TPC wire signals
+                #ophit, opflash
+                , t0counter 
+                , caldata
+                #hit reco with cheated disambiguation
+                #,gaushit #, fasthit
+                , robusthit
+                #real disambiguation
+                #, hit35t
+                #manual real-from-noise hit selection
+                #, handscan
+                # disambiguation using the counters.
+                #, counterhit
+                #cluster reco
+                #, dbcluster
+                #, linecluster, lineclusterch
+                #pmatrack
+                #, pmtrack, pmtrackch
+                #, photont0pmtrack, pmtrackcalo
+                #shower reconstruction
+                #, blurredcluster, emshower, emshower3d, mergeemshower3d
+              ]
+
+physics.producers.robusthit.WireModuleLabel:           "caldata"
+
+services.AdcRoiBuildingService: @local::adcroi_keepall
+services.RawDigitPrepService.DoDeconvolution: false
+services.RawDigitPrepService.DoEarlySignalFinding: false
+services.RawDigitPrepService.DoMitigation: true
+services.RawDigitPrepService.DoNoiseRemoval: false
+services.RawDigitPrepService.DoPedestalAdjustment: true
+services.RawDigitPrepService.DoROI: true
+services.RawDigitPrepService.DoWires: true
+services.RawDigitPrepService.SkipBad: true
+services.RawDigitPrepService.SkipNoisy: false

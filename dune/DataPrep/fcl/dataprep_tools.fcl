@@ -1,0 +1,415 @@
+# dataprep_tools.fcl
+
+# David Adams
+# July 2017
+
+# Some example tools for use in data prep.
+#
+# April 2018. Some protoDUNE-specific tools are moved to protodune_dataprep_tools.fcl
+
+################################################################################
+# Tools to display ADC data.
+################################################################################
+
+tools.tickRanges.plotTicks: { begin:3000  end:4000 labels:["Plot ticks"] }
+
+################################################################################
+# Dumpers.
+################################################################################
+
+# Dump ADC channel contents to the log file.
+tools.adcChannelDumper: {
+  tool_type: AdcChannelDumper
+  FileName: ""
+  Prefix: "ADC dump: "
+  NewFile: false
+  MaxSample: 0
+}
+
+################################################################################
+# Event displays.
+################################################################################
+
+# Add ADC info to names and titles, e.g.
+#  MyTitle = "Run %RUN%-%SUBRUN% event %EVENT% channel %CHAN%"
+#  MyFileName = "run%0RUN%-%0SUBRUN%_evt%0EVENT%_cha%0CHAN%"
+tools.adcStringBuilder: {
+  tool_type: StandardAdcChannelStringTool
+  LogLevel: 1
+  RunWidth: 6
+  SubRunWidth: 4
+  EventWidth: 6
+  ChannelWidth: 5
+  CountWidth: 4
+  FembWidth: 3
+}
+
+# Dump raw ADC channel waveform to a histogram.
+tools.adcPlotRaw: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["raw"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  PlotFileName: ""
+  HistManager: ""
+}
+
+# Dump prepared ADC channel waveform to a histogram.
+tools.adcPlotPrepared: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["prepared"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  PlotFileName: ""
+  HistManager: ""
+}
+
+# Dump ADC channel distribution to a histogram.
+tools.adcPlotRawDist: {
+  tool_type: AdcChannelPlotter
+  LogLevel: 1
+  HistTypes: ["rawdist"]
+  HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
+  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  RootFileName: ""
+  PlotFileName: ""
+  HistManager: ""
+}
+
+# Fit ADC distribution to get pedestal.
+tools.def_adcPedestalFit: {
+  tool_type: AdcPedestalFitter
+  LogLevel: 1
+  FitRmsMin:  1.0
+  FitRmsMax: 20.0
+  HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
+  HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
+  PlotFileName: ""
+  RootFileName: ""
+  HistManager: ""
+  PlotSizeX: 0
+  PlotSizeY: 0
+  PlotSplitX: 0
+  PlotSplitY: 0
+  PlotShowFit: 1
+}
+
+# Dump ADC map contents to the log file.
+tools.adcDumper: {
+  tool_type: AdcDataDumper
+  FileName: ""
+  Prefix: "ADC dump for "
+  NewFile: false
+  ShowChannelCount: true
+  ShowTickCounts: false
+  ShowRaw: false
+  ShowPrepared: true
+  ShowFirst: 10
+  ShowRebin: 5
+  ShowMax: 30
+  ShowThreshold: 10
+  ShowOpt: 2
+}
+
+# Create png files showing ADC contents (ADC vs. channel vs. time).
+tools.preparedAdcPlotter: {
+  tool_type: AdcDataPlotter
+  LogLevel: 1
+  DataType: 0      # 0 for prepared, 1 for raw-pedestal
+  TickRange: plotTicks
+  ChannelRanges: []
+  FembTickOffsets: []
+  MaxSignal: 200
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  Palette: 1026
+  HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
+  HistTitle: "Prepared ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  RootFileName: ""    # or "adc_evt%EVENT%.root"
+}
+tools.signalAdcPlotter: {
+  tool_type: AdcDataPlotter
+  LogLevel: 1
+  DataType: 2      # 0 for prepared, 1 for raw-pedestal
+  TickRange: plotTicks
+  ChannelRanges: []
+  FembTickOffsets: []
+  MaxSignal: 200
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  Palette: 1026
+  HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
+  HistTitle: "Signal ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotFileName: "adcsig_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  RootFileName: ""    # or "adc_evt%EVENT%.root"
+}
+tools.rawAdcPlotter: {
+  tool_type: AdcDataPlotter
+  LogLevel: 1
+  DataType: 1      # 0 for prepared, 1 for raw-pedestal
+  TickRange: plotTicks
+  ChannelRanges: []
+  FembTickOffsets: []
+  MaxSignal: 200
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [0, 800, 1600, 2080]
+  Palette: 1026
+  HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
+  HistTitle: "Raw ADC for event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotFileName: "adcraw_run%RUN%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  RootFileName: ""   # or "adc_evt%EVENT%.root"
+}
+
+################################################################################
+# Metric plotters.
+################################################################################
+
+# Pedestal for each channel.
+tools.adcChannelPedestalPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestal
+  ChannelRanges: []
+  MetricMin: 0
+  MetricMax: 4096
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
+  HistName: "hchped_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
+  HistTitle: "ADC pedestals for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchped_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
+  RootFileName: ""
+}
+
+# Pedestal RMS for each channel.
+tools.adcChannelPedestalRmsPlotter: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  Metric: pedestalRms
+  ChannelRanges: []
+  MetricMin: 0
+  MetricMax: 11
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
+  HistName: "hchpedrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
+  HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT%"
+  PlotSizeX: 1400
+  PlotSizeY:  500
+  PlotFileName: "hchpedrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
+  RootFileName: ""
+}
+
+adcSampleFreq: 2000
+adcPlotDftTemplate: {
+    tool_type: AdcChannelDftPlotter
+     LogLevel: 1
+   SampleFreq: @local::adcSampleFreq
+      YMinLog: 0.0
+    PlotSizeX: 1400
+    PlotSizeY: 1000
+   PlotSplitX: 4
+   PlotSplitY: 4
+}
+
+# DFT amplitudes
+tools.adcPlotDftMag: @local::adcPlotDftTemplate
+tools.adcPlotDftMag.Variable: magnitude
+tools.adcPlotDftMag.SampleFreq: @local::adcSampleFreq
+tools.adcPlotDftMag.YMax: 50
+tools.adcPlotDftMag.HistName: "hdftmags_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftMag.HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftMag.PlotName: "dftmag_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
+
+# DFT Phases
+tools.adcPlotDftPhase: @local::adcPlotDftTemplate
+tools.adcPlotDftPhase.Variable: phase
+tools.adcPlotDftPhase.HistName: "hdftphas_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
+tools.adcPlotDftPhase.HistTitle: "DFT phases for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftPhase.PlotName: "dftpha_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
+
+# DFT power
+tools.adcPlotDftPower: @local::adcPlotDftTemplate
+tools.adcPlotDftPower.Variable: power
+tools.adcPlotDftPower.YMax: 10000
+tools.adcPlotDftPower.NBinX: 50
+tools.adcPlotDftPower.HistName: "hdftpower_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftPower.PlotName: "dftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
+
+# DFT power/tick
+tools.adcPlotDftTickPower: @local::adcPlotDftTemplate
+tools.adcPlotDftTickPower.Variable: "power/tick"
+tools.adcPlotDftTickPower.YMax: -2.0
+tools.adcPlotDftTickPower.NBinX: 50
+tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
+tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
+
+# DFT power/tick with log scale.
+tools.adcPlotDftTickPowerLog: @local::tools.adcPlotDftTickPower
+tools.adcPlotDftTickPowerLog.YMinLog: 0.001
+tools.adcPlotDftTickPowerLog.YMax: 20.0
+tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPowerLog.PlotName: "dftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
+
+################################################################################
+# Data prep reconstruction tools.
+################################################################################
+
+# Extract raw data from a digit.
+tools.digitReader: {
+  tool_type: AcdDigitReader
+  LogLevel: 1
+}
+
+# Fill sample from 12-bit ADC data.
+tools.adcSampleFiller: {
+  tool_type: AdcSampleFiller
+  LogLevel: 1
+  AdcUnderflow: 0
+  AdcOverflow: 4095
+}
+
+# Perform deconvolution with SignalShapingService.
+tools.adcVintageDeconvoluter: {
+  tool_type: VintageDeconvoluter
+  LogLevel: 1
+}
+
+# Subtract baseline after deconvolution
+tools.adcSubtractBaseline: {
+  tool_type: SubtractBaseline
+  LogLevel: 1
+  BaseSampleBins: 32
+  BaseVarCut: 5.
+}
+
+# Find one ADC signals that includes all samples.
+tools.adcKeepAllSignalFinder: {
+  tool_type: AdcKeepAllSignalFinder
+  LogLevel: 1
+}
+
+# Find ADC signals with simple threshold algorithm.
+tools.adcThresholdSignalFinder: {
+  tool_type: AdcThresholdSignalFinder
+  LogLevel: 1
+  Threshold: 3.0   # Works for MC may2018
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+
+# Find ADC signals with Dune 35t algorithm.
+tools.adcDuneSignalFinder: {
+  tool_type: DuneAdcSignalFinder
+  LogLevel: 1
+  NoiseSigma:  0.0
+  NSigmaStart: 3.0
+  NSigmaEnd:   1.0
+  TicksBefore: 50
+  TicksAfter:  50
+}
+
+# Do FFT.
+tools.adcFFT: {
+  tool_type: AdcChannelFFT
+  LogLevel:  1
+  FirstTick: 0
+  NTick:     0
+  NormOpt:   1
+  Action:    3
+  ReturnOpt: 1
+}
+
+# Undo FFT.
+tools.adcFFTinv: {
+  tool_type:  AdcChannelFFT
+  LogLevel:   1
+  FirstTick:  0
+  NTick:      0
+  NormOpt:    1
+  Action:    13
+  ReturnOpt: 10
+}
+
+# Fetch ROI info and hists.
+tools.adcRoiViewer: {
+  tool_type: AdcRoiViewer
+  LogLevel: 1
+  SigThresh: 0.0
+  TickBorder: 0
+  RoiHistOpt:  1
+  FitOpt:   0
+  PulserStepCharge: 0.0
+  PulserDacOffset: 0.0
+  PulserChargeUnit: ""
+  RunDataTool: ""
+  TickOffsetTool: ""
+  SumHists: []
+  RoiRootFileName: ""
+  SumRootFileName: ""
+}
+tools.adcRoiFitter: {
+  tool_type: AdcRoiViewer
+  SigThresh: 0.0
+  TickBorder: 0
+  LogLevel: 1
+  RoiHistOpt:  1
+  FitOpt:   1
+  PulserStepCharge: 0.0
+  PulserDacOffset: 0.0
+  PulserChargeUnit: ""
+  RunDataTool: ""
+  TickOffsetTool: ""
+  SumHists: []
+  RoiRootFileName: ""
+  SumRootFileName: ""
+}
+
+# Build ROI w.r.t. local baseline
+tools.adcDPhase3x1x1LocalRoiBuilder: {
+  tool_type: AdcDPhase3x1x1LocalRoiBuilder
+  LogLevel: 1
+  BinsToAverageForPedestal: 100
+  BinsToSkip: 2
+  UseStandardDeviation: true
+  NConsecBinsAboveThreshold1: 9
+  NSigmaStart1: 0.5
+  NSigmaEnd1: 0.0
+  NConsecBinsAboveThreshold2: 4
+  NSigmaStart2: 1.8
+  NSigmaMax: 5
+  PadLow: 10
+  PadHigh: 30
+}
+
+# Build ROI w.r.t 0
+tools.adcDPhase3x1x1RoiBuilder: {
+  tool_type: AdcDPhase3x1x1RoiBuilder
+  LogLevel: 1
+  BinsToAverageForRMS: 100
+  BinsToSkip: 0
+  UseStandardDeviation: false
+  NConsecBinsAboveThreshold1: 30
+  NSigmaStart1: 1.0
+  NSigmaEnd1: 0.0
+  NConsecBinsAboveThreshold2: 10
+  NSigmaStart2: 2.0
+  NSigmaMax: 7.0
+  PadLow: 20
+  PadHigh: 50
+}

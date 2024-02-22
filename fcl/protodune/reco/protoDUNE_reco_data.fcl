@@ -1,0 +1,18 @@
+#include "protoDUNE_reco.fcl"
+
+process_name: Reco
+
+physics.reco: [
+    #TPC wire signals      
+    caldata
+]
+
+physics.producers.caldata.DigitLabel: "tpcrawdecoder:daq"
+
+services.RawDigitPrepService.AdcChannelToolNames: [
+    "digitReader",
+    "pd_adcPedestalFit",
+    "adcSampleFiller",
+    "adcVintageDeconvoluter",
+    "adcThresholdSignalFinder"
+]

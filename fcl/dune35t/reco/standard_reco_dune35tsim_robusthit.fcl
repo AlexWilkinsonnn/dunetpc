@@ -1,0 +1,44 @@
+#include "standard_reco_dune35tsim.fcl"
+process_name: RecoRobust
+
+services.MemoryTracker: { } # default is one
+
+physics.producers.robusthit: @local::dune35t_robusthitfindersim
+physics.reco: [ rns, 
+                #optical hit reco, flash, counter, TPC wire signals
+                #ophit, opflash, 
+                t0counter, caldata, 
+                #robust hit finder
+                robusthit
+                #cheater reco
+                #hitcheat, clustercheat, trackcheat,
+                #hit reco with cheated disambiguation
+                #gaushit, dcheat, fasthit, 
+                #cluster reco with cheated disambiguation
+                #dbclusterdc, lineclusterdc,
+                #3D reco with cheated disambiguation
+                #costrkdc, mctrutht0dc, photont0costrkdc, calodc, 
+                #shower reconstruction
+                #blurredclusterdc, emshowerdc,
+                #real disambiguation
+                #hit35t,
+                #cluster reco
+                #dbcluster, linecluster,
+                #3D reco
+                #costrk,  mctrutht0, photont0costrk, calo,
+                #shower reconstruction
+                #blurredcluster, emshower
+              ]
+
+physics.producers.robusthit.WireModuleLabel: "caldata"
+
+services.AdcRoiBuildingService: @local::adcroi_keepall
+services.RawDigitPrepService.DoDeconvolution: false
+services.RawDigitPrepService.DoEarlySignalFinding: false
+services.RawDigitPrepService.DoMitigation: false
+services.RawDigitPrepService.DoNoiseRemoval: false
+services.RawDigitPrepService.DoPedestalAdjustment: false
+services.RawDigitPrepService.DoROI: true
+services.RawDigitPrepService.DoWires: true
+services.RawDigitPrepService.SkipBad: true
+services.RawDigitPrepService.SkipNoisy: false

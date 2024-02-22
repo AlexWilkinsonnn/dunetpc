@@ -1,0 +1,10 @@
+# tools_dune.fcl
+
+# David Adams
+# April 2017
+#
+# Collect all tool definitions for DUNE.
+
+#include "dunecommon_tools.fcl"
+#include "dataprep_tools.fcl"
+#include "detsimtools_dune.fcl"

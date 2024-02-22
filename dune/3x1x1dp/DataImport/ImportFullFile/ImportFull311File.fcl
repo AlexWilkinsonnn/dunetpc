@@ -1,0 +1,31 @@
+#include "services_dune.fcl"
+
+process_name: ImportFull311FileProcess
+
+services: 				@local::dunedphase3x1x1_services
+services.RandomNumberGenerator: 	{}
+
+source:
+{
+  module_type: ImportFull311File
+  max_events: -1
+  fileNames: [ "/eos/experiment/wa105/data/311/rawdata/840/840-0.dat" ]
+  PedestalFile: "/eos/experiment/wa105/data/311/datafiles/pedestals/pedestal_run729_1.ped"
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: 	RootOutput
+    fileName: 	 	"RawData311FullFile.root"
+    compressionLevel: 	1
+    dataTier: 		"raw"
+  }
+}
+
+physics:
+{
+  stream1: 	[ out1 ]
+  end_paths: 	[ stream1 ]
+}

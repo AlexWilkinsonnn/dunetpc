@@ -1,0 +1,32 @@
+BEGIN_PROLOG
+
+# Standard configurations for art's built-in FileCatalogMetadata service.
+# Metadata fields are standard, but values are still dune-specific.
+
+art_file_catalog:
+{
+  # Note sam application name is taken from "process_name" fcl parameter in main job file.
+  applicationFamily:   "art"
+  applicationVersion:  "development"
+  group:               "dune"
+  runType:             "physics"
+  fileType:            "unknown"
+}
+
+art_file_catalog_mc:           @local::art_file_catalog
+art_file_catalog_mc.fileType:  "mc"
+
+art_file_catalog_data:           @local::art_file_catalog
+art_file_catalog_data.fileType:  "data"
+
+# standard configurations for the TFileMetadataDUNE service
+
+dune_tfile_metadata:
+{
+  JSONFileName:          "ana_hist.root.json"
+  GenerateTFileMetadata: true
+  dataTier:              "root-tuple"
+  fileFormat:            "root"
+}
+
+END_PROLOG

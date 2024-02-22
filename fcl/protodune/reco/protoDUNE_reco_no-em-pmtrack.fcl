@@ -1,0 +1,27 @@
+#include "protoDUNE_reco.fcl"
+
+# Example minimal configuration to run EM/track separation in front of 3D track reconstruction
+# The module produces tracks where a seed (cluster from which track is initiated) has to be
+# track-like. Since it is still possible that electron track was reconstructed, the resulting
+# 3D track is checked in its best projection and if CNN output there, using all hits, is below
+# track-like threshold, the corresponding PFParticle is tagged with PDG code 11 (electron).
+
+process_name: RecoEm
+
+source.inputCommands: ["keep *_*_*_*", "drop *_*_*_Reco" ]
+
+physics.producers.pmtrack.HitModuleLabel:                     "linecluster"
+#physics.producers.pmtrack.ClusterModuleLabel:                 "linecluster" # the ususal way, all clusters used to create 3D tracks
+physics.producers.pmtrack.ClusterModuleLabel:                 "emtrkmichelid:emtrkmichel" # 3D track seed has to be track-like over the threshold
+physics.producers.pmtrack.PMAlgTracking.TrackLikeThreshold:   0.63  # and this is the threshold to be track-like (you may need different value!)
+physics.producers.pmtrack.PMAlgTracking.MinSeedSize2ndPass:   3
+physics.producers.pmtrack.PMAlgTracking.Validation:           "adc"
+physics.producers.pmtrack.PMAlgTracking.AdcValidationThr:     [0.8, 0.8, 1.0]
+physics.producers.pmtrack.PMAlgTracking.RunVertexing:         true
+physics.producers.pmtrack.PMAlgTracking.FlipToBeam:           true
+physics.producers.pmtrack.PMAlgTracking.MatchT0inAPACrossing: false # use this in FD
+physics.producers.pmtrack.PMAlgTracking.MatchT0inCPACrossing: false # use this in ProtoDUNE and FD
+#physics.producers.pmtrack.PMAlgTracking.AutoFlip_dQdx: true
+
+physics.reco: [ rns, caldata, gaushit, hitfd, linecluster, emtrkmichelid, pmtrack ]
+

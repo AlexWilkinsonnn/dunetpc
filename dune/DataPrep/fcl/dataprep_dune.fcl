@@ -1,0 +1,343 @@
+# dataprep_dune.fcl
+#
+# David Adams
+# August 2016
+
+BEGIN_PROLOG
+
+#***********************************************************************
+
+# AdcChannelDataCopyService copies AdcChannelData.
+
+adccopy: {
+  service_provider: ConfigurableAdcChannelDataCopyService
+  LogLevel:           1
+  CopyChannel:     true
+  CopyPedestal:    true
+  CopyRaw:        false
+  CopySamples:     true
+  CopyFlags:      false
+  CopyRois:       false
+  CopyDigit:       true
+  CopyWire:       false
+  CopyDigitIndex:  true
+  CopyWireIndex:  false
+}
+
+#***********************************************************************
+
+# RawDigitExtractService pulls ADC signals (raw:RawDigit) out of the lar
+# container, converts to float, flags bad channels and subtracts pedestals.
+
+rdx_std: {
+  service_provider: StandardRawDigitExtractService
+  LogLevel: 1
+  DigitReadTool: digitReader
+  PedestalOption: 1
+  FlagStuckOff: false
+  FlagStuckOn: false
+}
+
+rdx_35tdata: {
+  service_provider: StandardRawDigitExtractService
+  LogLevel: 1
+  DigitReadTool: digitReader
+  PedestalOption: 1
+  FlagStuckOff: true
+  FlagStuckOn: true
+}
+
+#***********************************************************************
+
+# AdcMitigationService is used to mitigate ADC signals, e.g.
+# interpolate between good values to deal with stuck bits.
+
+adcmit_dune35t: {
+  service_provider: InterpolatingAdcMitigationService
+  LogLevel: 1
+  SkipUnderflows:      true
+  SkipOverflows:       true
+  MaxConsecutiveSamples:  5
+  MaxConsecutiveFlag:     0
+}
+
+#***********************************************************************
+
+# AdcSuppressService is used by AdcSuppressSignalFindingService (below).
+
+adcsuppress_legacy35t: {
+  service_provider: Legacy35tZeroSuppressService
+  AdcThreshold: 30.0
+  TickRange: 4
+  MinTickGap: 2
+  SuppressStickyBits: false
+}
+
+#***********************************************************************
+
+# AdcSuppressSignalFindingService is used to remove noise from ADC signals.
+
+# This implementation uses AdcSuppressService.
+adcsigfind_suppress: {
+  service_provider: AdcSuppressSignalFindingService
+}
+
+#***********************************************************************
+
+# AdcNoiseRemovalService is used to remove noise from ADC signals.
+
+adcnr_dune35tlegacy: {
+  service_provider: Dune35tNoiseRemovalService
+  LogLevel:             1
+  GroupingFlag:         1
+  SkipStuckCodes:   false
+  SkipSignals:      false
+  CorrectStuckCodes: true
+  ShowGroups:           0  # Use 2 to dump group map
+  ShowGroupsChannel:    4
+}
+
+adcnr_dunedphase3x1x1: {
+  service_provider: DuneDPhase3x1x1NoiseRemovalService
+  CorrMode:                         "median" # mean or median
+  DoTwoPassFilter:                      false
+  BinsToSkip: 				2
+  Coherent32:                           true
+  Coherent32Groups:                       [] # do all groups if empty list
+  Coherent16:                           true
+  Coherent16Groups:   [6, 7, 16, 17, 18, 19] # do all groups if empty list
+  UseBasicROIForCNR:			 true
+  RoiStartThreshold:                       7
+  RoiEndThreshold:                         6
+  RoiPadLow:                               8
+  RoiPadHigh:                             40
+  Flatten:                              true
+  FlattenExtrapolate:			false
+  LowPassFlt:                           false
+}
+
+#***********************************************************************
+
+# PedestalEvaluationService is used to evaluate pedestals from the
+# ADC signals.
+
+adcped_median: {
+  service_provider: MedianPedestalService
+  LogLevel:              1
+  UseMean:            false
+  SkipFlaggedSamples: true
+  SkipSignals:        true
+}
+
+adcped_mean: {
+  service_provider: MedianPedestalService
+  LogLevel:              1
+  UseMean:            true
+  SkipFlaggedSamples: true
+  SkipSignals:        true
+}
+
+#***********************************************************************
+
+# AdcDeconvolutionService is used to deconvolute the ADC signals.
+
+adcdco_dune35t: {
+  service_provider: DuneDeconvolutionService
+  LogLevel:              1
+}
+
+adcdco_dunefd: @local::adcdco_dune35t
+
+adcdco_dunefddphase: {
+  service_provider: DuneDPhaseDeconvolutionService
+  LogLevel:              1
+}
+
+#***********************************************************************
+
+# AdcRoiBuildingService is used to define ROIs for the ADC signals.
+
+adcroi_dune35t: {
+  service_provider: DuneRoiBuildingService
+  NSigmaStart:        3.0
+  NSigmaEnd:          1.0
+  PadLow:              50
+  PadHigh:             50
+  LogLevel:             1
+}
+
+adcroi_dunefd: @local::adcroi_dune35t
+
+adcroi_dunefddphase: {
+  service_provider: DuneDPhaseRoiBuildingService
+  UseFilter:                 false
+  FltCoeffs:     [0.1, 0.75, 0.95]
+  NSigmaStart:                 3.0
+  NSigmaEnd:                   1.0
+  PadLow:                       50
+  PadHigh:                      50
+  LogLevel:                      1
+}
+
+adcroi_keepall: {
+  service_provider: KeepAllRoiBuildingService
+  LogLevel:              1
+}
+
+#***********************************************************************
+
+# AdcWireBuildingService constructs lar outputs (recob::Wire) from ADC
+# signals.
+
+adcwire_std: {
+  service_provider: StandardAdcWireBuildingService
+  LogLevel:              1
+}
+
+#***********************************************************************
+
+# RawDigitPrepService is the high level service that uses the above
+# services to prepare ADC signals including the conversion of
+# raw::RawDigit to recob::Wire.
+
+# Read raw data and subtract pedestals without any other preparation.
+adcprep_readraw: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:       false
+  DoROI:                 false
+  DoWires:               false
+  DoIntermediateStates:  false
+  DisplayTools:             []
+}
+
+# Process simulation using service-based dataprep.
+adcprep_with_services_sim: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:                true
+  SkipNoisy:             false
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:        false
+  DoPedestalAdjustment:  false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
+  DoIntermediateStates:  false
+  DisplayTools:             []
+}
+
+# Process simulation using tool-based dataprep.
+adcprep_with_tools_sim: {
+  service_provider: ToolBasedRawDigitPrepService
+  LogLevel: 3
+  DoWires: true
+  AdcChannelToolNames: [
+    "digitReader",
+    "adcSampleFiller",
+    "adcVintageDeconvoluter",
+    "adcThresholdSignalFinder"
+  ]
+}
+
+# Process data using tool-based dataprep.
+adcprep_with_tools_data: {
+  service_provider: ToolBasedRawDigitPrepService
+  LogLevel: 3
+  DoWires: true
+  AdcChannelToolNames: [
+    "digitReader",
+    "adcSampleFiller",
+    "adcVintageDeconvoluter",
+    "adcThresholdSignalFinder"
+  ]
+}
+
+# Process DP 3x1x1 data.
+adcprep_dunedphase3x1x1: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:               false
+  SkipNoisy:              true
+  DoMitigation:          false
+  DoEarlySignalFinding:  false
+  DoNoiseRemoval:         true
+  DoPedestalAdjustment:  false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
+  DoIntermediateStates:  false
+  DisplayTools:             []
+}
+
+# Process 35-ton data
+adcprep_dune35tdata: {
+  service_provider: StandardRawDigitPrepService
+  LogLevel: 1
+  SkipBad:                true
+  SkipNoisy:             false
+  DoMitigation:           true
+  DoEarlySignalFinding:   true
+  DoNoiseRemoval:         true
+  DoPedestalAdjustment:  false
+  DoDeconvolution:        true
+  DoROI:                  true
+  DoWires:                true
+  DoIntermediateStates:  false
+  DisplayTools:             []
+}
+
+#***********************************************************************
+
+# Channel groups.
+
+# Process by APA keeping all ROPs.
+changroup_apa_keepall: {
+  service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: []
+}
+
+# Process by APA dropping the protoDUNE cryostat-side collection plane.
+changroup_apa_pd_drop_outer: {
+  service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: [11, 7]
+}
+
+# Process by APA keeping only the protoDUNE TPC-side collection plane.
+changroup_apa_pd_tpccoll: {
+  service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: [ 8, 4]
+}
+
+changroup_rop: {
+  service_provider: GeoRopChannelGroupService
+}
+
+#***********************************************************************
+
+# DataPrepModule is the producer that calls RawDigitPrepService
+
+# Process any data.
+producer_adcprep: {
+  module_type: "DataPrepModule"
+  LogLevel:                   1
+  DigitLabel:             "daq"
+  WireName:                  ""
+  DoAssns:                 true
+  DoGroups:                true
+  IntermediateStates:        []
+}
+
+#***********************************************************************
+
+END_PROLOG

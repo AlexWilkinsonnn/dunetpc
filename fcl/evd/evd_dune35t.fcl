@@ -1,0 +1,17 @@
+#include "evd_dune.fcl"
+process_name: EVD
+
+includedServices: @local::services
+
+services: {
+    @table::includedServices
+    @table::dune35t_disp
+}
+
+includedServices: @erase
+
+services.RawDrawingOptions.TotalTicks: 5200
+
+services.DetPedestalService.FixedDetPedestal.PedMeanU: 1800
+services.DetPedestalService.FixedDetPedestal.PedMeanV: 1800
+services.DetPedestalService.FixedDetPedestal.PedMeanZ: 500
