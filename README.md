@@ -1,4 +1,4 @@
-# TDR era dunetpc (tag v07\_06\_02)
+# TDR era dunetpc (tag v07\_06\_02 [redmine](https://cdcvs.fnal.gov/redmine/projects/dunetpc/repository/revisions/v07\_06\_02/show)
 
 Note: the root directory must be named `dunetpc` or the build breaks :)
 
@@ -22,7 +22,7 @@ source build_ninja.sh # this should now build
 
 In a new shell do `source setup.sh` to use the code
 
-`build_ninja.sh` and `install_ninja` should work normally
+`source build_ninja.sh` and `source install_ninja.sh` should work normally
 
 If you do a `mrb zd` at any point you will probably need to repeat some of this weird failing the build and then setting up old smake business
 
