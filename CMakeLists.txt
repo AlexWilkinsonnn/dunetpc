@@ -77,6 +77,8 @@ if(DEFINED ENV{LAPACK_LIB} )
   find_ups_product( lapack )
 endif()
 
+find_ups_product( hdf5 )
+
 # macros for dictionary and simple_plugin
 include(ArtDictionary)
 include(ArtMake)

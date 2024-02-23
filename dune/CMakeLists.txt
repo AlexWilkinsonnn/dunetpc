@@ -57,6 +57,8 @@ add_subdirectory(CAFMaker)
 
 add_subdirectory(RegCVN)
 
+add_subdirectory(NDFDPairs)
+
 # Respect the order specified in lar_build, which is:
 #
 #     "SoftRelTools",
