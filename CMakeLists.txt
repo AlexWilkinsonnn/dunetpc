@@ -94,6 +94,7 @@ add_subdirectory(test)
 add_subdirectory(ups)
 # subdirectory for fcl files
 add_subdirectory(fcl)
+add_subdirectory(ndfd_pairs_fcl)
 
 # packaging utility
 include(UseCPack)
