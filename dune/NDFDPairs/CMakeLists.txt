@@ -44,6 +44,8 @@ art_make(
                 ${HDF5_C_LIBRARY_hdf5}
                 ${HDF5_C_LIBRARY_m}
                 ${HDF5_C_LIBRARY_z}
+
+                CVNFunc
         )
 
 install_headers()

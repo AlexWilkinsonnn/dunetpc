@@ -43,6 +43,23 @@ typedef struct recoFD {
   float nue_score;
   float nc_score;
   float nutau_score;
+  float antinu_score;
+  float p_0_score;
+  float p_1_score;
+  float p_2_score;
+  float p_N_score;
+  float pi_0_score;
+  float pi_1_score;
+  float pi_2_score;
+  float pi_N_score;
+  float pi0_0_score;
+  float pi0_1_score;
+  float pi0_2_score;
+  float pi0_N_score;
+  float n_0_score;
+  float n_1_score;
+  float n_2_score;
+  float n_N_score;
   float numu_nu_E;
   float numu_had_E;
   float numu_lep_E;
@@ -62,6 +79,23 @@ HighFive::CompoundType make_recoFD() {
     {"nue_score", HighFive::AtomicType<float>{}},
     {"nc_score", HighFive::AtomicType<float>{}},
     {"nutau_score", HighFive::AtomicType<float>{}},
+    {"antinu_score", HighFive::AtomicType<float>{}},
+    {"0_p_score", HighFive::AtomicType<float>{}},
+    {"1_p_score", HighFive::AtomicType<float>{}},
+    {"2_p_score", HighFive::AtomicType<float>{}},
+    {"N_p_score", HighFive::AtomicType<float>{}},
+    {"0_pi_score", HighFive::AtomicType<float>{}},
+    {"1_pi_score", HighFive::AtomicType<float>{}},
+    {"2_pi_score", HighFive::AtomicType<float>{}},
+    {"N_pi_score", HighFive::AtomicType<float>{}},
+    {"0_pi0_score", HighFive::AtomicType<float>{}},
+    {"1_pi0_score", HighFive::AtomicType<float>{}},
+    {"2_pi0_score", HighFive::AtomicType<float>{}},
+    {"N_pi0_score", HighFive::AtomicType<float>{}},
+    {"0_n_score", HighFive::AtomicType<float>{}},
+    {"1_n_score", HighFive::AtomicType<float>{}},
+    {"2_n_score", HighFive::AtomicType<float>{}},
+    {"N_n_score", HighFive::AtomicType<float>{}},
     {"numu_nu_E", HighFive::AtomicType<float>{}},
     {"numu_had_E", HighFive::AtomicType<float>{}},
     {"numu_lep_E", HighFive::AtomicType<float>{}},
@@ -107,10 +141,6 @@ private:
     std::string& numuEResultsLabel,
     std::string& nueEResultsLabel
   );
-  float getNumuScore(const std::vector<float>& CVNOutput);
-  float getNueScore(const std::vector<float>& CVNOutput);
-  float getNCScore(const std::vector<float>& CVNOutput);
-  float getNutauScore(const std::vector<float>& CVNOutput);
 
   // Members
   HighFive::File* fFile;
@@ -178,14 +208,35 @@ recoFD extrapolation::AddFDReco::getReco(
   const bool validCVN = CVNResults->size() != 0;
 
   // Get flavour scores
-  float numuScore = validCVN ? getNumuScore(CVNResults->at(0).fOutput) : -999;
-  float nueScore = validCVN ? getNueScore(CVNResults->at(0).fOutput) : -999;
-  float nutauScore = validCVN ? getNutauScore(CVNResults->at(0).fOutput) : -999;
-  float ncScore = validCVN ? getNCScore(CVNResults->at(0).fOutput) : -999;
+  float numuScore = validCVN ? CVNResults->at(0).GetNumuProbability() : -909;
+  float nueScore = validCVN ? CVNResults->at(0).GetNueProbability() : -999;
+  float ncScore = validCVN ? CVNResults->at(0).GetNCProbability() : -999;
+  float nutauScore = validCVN ? CVNResults->at(0).GetNutauProbability() : -999;
 
   // Get nu E reco information
   const auto numuEOut = e.getValidHandle<dune::EnergyRecoOutput>(numuEResultsLabel);
   const auto nueEOut = e.getValidHandle<dune::EnergyRecoOutput>(nueEResultsLabel);
+
+  // Get antineutrino score
+  float antiNuScore = validCVN ? CVNResults->at(0).GetIsAntineutrinoProbability() : -999;
+
+  // Get CVN doodads
+  float proton0Score = validCVN ? CVNResults->at(0).Get0protonsProbability() : -999;
+  float proton1Score = validCVN ? CVNResults->at(0).Get1protonsProbability() : -999;
+  float proton2Score = validCVN ? CVNResults->at(0).Get2protonsProbability() : -999;
+  float protonNScore = validCVN ? CVNResults->at(0).GetNprotonsProbability() : -999;
+  float pion0Score = validCVN ? CVNResults->at(0).Get0pionsProbability() : -999;
+  float pion1Score = validCVN ? CVNResults->at(0).Get1pionsProbability() : -999;
+  float pion2Score = validCVN ? CVNResults->at(0).Get2pionsProbability() : -999;
+  float pionNScore = validCVN ? CVNResults->at(0).GetNpionsProbability() : -999;
+  float pionZero0Score = validCVN ? CVNResults->at(0).Get0pizerosProbability() : -999;
+  float pionZero1Score = validCVN ? CVNResults->at(0).Get1pizerosProbability() : -999;
+  float pionZero2Score = validCVN ? CVNResults->at(0).Get2pizerosProbability() : -999;
+  float pionZeroNScore = validCVN ? CVNResults->at(0).GetNpizerosProbability() : -999;
+  float neutron0Score = validCVN ? CVNResults->at(0).Get0neutronsProbability() : -999;
+  float neutron1Score = validCVN ? CVNResults->at(0).Get1neutronsProbability() : -999;
+  float neutron2Score = validCVN ? CVNResults->at(0).Get2neutronsProbability() : -999;
+  float neutronNScore = validCVN ? CVNResults->at(0).GetNneutronsProbability() : -999;
 
   float numuNuE = (float)numuEOut->fNuLorentzVector.E();
   float numuHadE = (float)numuEOut->fHadLorentzVector.E();
@@ -205,6 +256,23 @@ recoFD extrapolation::AddFDReco::getReco(
     nueScore,
     ncScore,
     nutauScore,
+    antiNuScore,
+    proton0Score,
+    proton1Score,
+    proton2Score,
+    protonNScore,
+    pion0Score,
+    pion1Score,
+    pion2Score,
+    pionNScore,
+    pionZero0Score,
+    pionZero1Score,
+    pionZero2Score,
+    pionZeroNScore,
+    neutron0Score,
+    neutron1Score,
+    neutron2Score,
+    neutronNScore,
     numuNuE,
     numuHadE,
     numuLepE,
@@ -218,39 +286,6 @@ recoFD extrapolation::AddFDReco::getReco(
   };
 
   return eventReco;
-}
-
-float extrapolation::AddFDReco::getNumuScore(const std::vector<float>& CVNOutputs)
-{
-  using i = cvn::Interaction;
-  return CVNOutputs[i::kNumuQE] +
-    CVNOutputs[i::kNumuRes] +
-    CVNOutputs[i::kNumuDIS] +
-    CVNOutputs[i::kNumuOther];
-}
-
-float extrapolation::AddFDReco::getNueScore(const std::vector<float>& CVNOutputs)
-{
-  using i = cvn::Interaction;
-  return CVNOutputs[i::kNueQE] +
-    CVNOutputs[i::kNueRes] +
-    CVNOutputs[i::kNueDIS] +
-    CVNOutputs[i::kNueOther];
-}
-
-float extrapolation::AddFDReco::getNutauScore(const std::vector<float>& CVNOutputs)
-{
-  using i = cvn::Interaction;
-  return CVNOutputs[i::kNutauQE] +
-    CVNOutputs[i::kNutauRes] +
-    CVNOutputs[i::kNutauDIS] +
-    CVNOutputs[i::kNutauOther];
-}
-
-float extrapolation::AddFDReco::getNCScore(const std::vector<float>& CVNOutputs)
-{
-  using i = cvn::Interaction;
-  return CVNOutputs[i::kNC];
 }
 
 DEFINE_ART_MODULE(extrapolation::AddFDReco)
