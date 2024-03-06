@@ -28,8 +28,8 @@ fi
 echo $INPUT_TAR_DIR_LOCAL
 
 # Setup env
-${INPUT_TAR_DIR_LOCAL}/srcs/duneextrapolation/scripts/make_setup_grid.sh ${INPUT_TAR_DIR_LOCAL}/localProducts_larsoft_*/setup \
-                                                                         setup-grid
+${INPUT_TAR_DIR_LOCAL}/srcs/dunetpc/scripts/jobs/make_setup_grid.sh ${INPUT_TAR_DIR_LOCAL}/localProducts_larsoft_*/setup \
+                                                                    setup-grid
 source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
 source setup-grid
 unsetup mrb
