@@ -11,7 +11,7 @@ mrb newDev -v v07_06_02 -q e17:prof
 cd srcs
 git clone git@github.com:AlexWilkinsonnn/dunetpc.git
 cd ../
-cp srcs/dunetpc/scripts/* .
+cp srcs/dunetpc/scripts/dev/* .
 # update paths in setup.sh
 source setup.sh
 mrb uc
