@@ -31,7 +31,5 @@ In a new shell do `source setup.sh` to use the code
 
 For development, I found `source install_ninja.sh` to not work. `source buid_ninja.sh` does work but complains about cmake version, so I am doing `unsetup cmake; setup cmake v3_21_4` before building after a change...
 
-`source build_ninja.sh` and `source install_ninja.sh` should work normally. I f
-
 If you do a `mrb zd` at any point you will probably need to repeat some of this weird failing the build and then setting up old smake business
 
