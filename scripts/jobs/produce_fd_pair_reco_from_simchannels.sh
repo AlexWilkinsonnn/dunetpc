@@ -59,6 +59,11 @@ ls -lrth
 num_events=$(h5ls $input_name | sed -n "s/^vertices.*Dataset {\([0-9]\+\).*/\1/p")
 echo "$input_name has $num_events events"
 
+# CVN stuff needs a libgtk-3.so that is not found on the grid (fine on the gpvms :()
+# We included in the tarball to use here
+cp -r ${INPUT_TAR_DIR_LOCAL}/lib64 .
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/lib64
+
 # Generate FD Reco from SimChannels
 lar -c ./run_LoadFDSimChannels.fcl -n $num_events
 lar -c standard_detsim_dune10kt_nooptdetsim_1x2x6.fcl -s LoadedFDSimChannels.root -n -1
@@ -72,10 +77,9 @@ ls -lrth
 
 echo "Copying files to dCache..."
 if [ "$SAVE_FDRECO" = true ]; then
-  ifdh cp *_merged.root \
-          ${FDRECO_PAIR_OUTPUT}/${input_name%.*}_LoadedFDSimChannels_detsimnoopt_reco_merged.root
+  ifdh cp *_merged.root ${FDRECO_PAIR_OUTPUT}/${input_name%.*}_LoadedFDSimChannels_detsimnoopt_reco_merged.root
 fi
-if [ "$SAVE_PAIR_SC" = true ]; then
-  ifdh cp ${input_name} ${FD_PAIR_SIMCHANNELS_OUTPUT}/${input_name%.*}_fdreco.h5
+if [ "$SAVE_COMPLETE_PAIR" = true ]; then
+  ifdh cp ${input_name} ${COMPLETE_PAIR_OUTPUT}/${input_name%.*}_fdreco.h5
 fi
 
