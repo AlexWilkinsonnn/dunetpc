@@ -12,7 +12,7 @@ def main(args):
 
     f_out = h5py.File(args.output_file, "w")
 
-    for f_path in f_paths[:5]:
+    for f_path in f_paths:
         f_name = os.path.basename(f_path)
 
         proc = subprocess.Popen(["ifdh", "cp", f_path, f_name], stdout=subprocess.PIPE)
