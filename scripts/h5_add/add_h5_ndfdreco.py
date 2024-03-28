@@ -23,18 +23,20 @@ def fill_h5(f_paths, f_out):
         proc = subprocess.Popen(["ifdh", "cp", f_path, f_name], stdout=subprocess.PIPE)
         proc.wait()
 
+        group_name = f_path.replace("/", "#")
+
         with h5py.File(f_name) as f_in:
-            if "fd_reco" in f_in.keys():
+            if "fd_reco" in f_in.keys() and "nd_paramreco" in f_in.keys():
                 nd_reco = f_in["nd_paramreco"]
                 fd_reco = f_in["fd_reco"]
                 
-                f_out.create_group(f_path)
-                f_out[f_path].create_dataset("nd_paramreco", data=nd_reco)
-                f_out[f_path].create_dataset("fd_reco", data=fd_reco)
+                f_out.create_group(group_name)
+                f_out[group_name].create_dataset("nd_paramreco", data=nd_reco)
+                f_out[group_name].create_dataset("fd_reco", data=fd_reco)
     
-                print(f"Added {f_path}")
+                print(f"Added {group_name}")
             else:
-                print(f"No FD reco for {f_path}")
+                print(f"Missing fd_reco or nd_paramreco for {f_path}:\n({f_in.keys()})")
 
         proc = subprocess.Popen(["rm", "-v", f_name], stdout=subprocess.PIPE)
         proc.wait()
