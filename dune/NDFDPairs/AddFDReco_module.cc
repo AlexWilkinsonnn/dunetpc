@@ -25,6 +25,7 @@
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardataobj/RecoBase/Hit.h"
 
 #include "highfive/H5DataSet.hpp"
 #include "highfive/H5File.hpp"
@@ -70,6 +71,18 @@ typedef struct recoFD {
   float nue_had_E;
   float nue_lep_E;
   int nue_reco_method;
+  float eRecoP;
+  float eRecoN;
+  float eRecoPip;
+  float eRecoPim;
+  float eRecoPi0;
+  float eRecoOther;
+  float eDepP;
+  float eDepN;
+  float eDepPip;
+  float eDepPim;
+  float eDepPi0;
+  float eDepOther;
 } recoFD;
 
 HighFive::CompoundType make_recoFD() {
@@ -105,7 +118,19 @@ HighFive::CompoundType make_recoFD() {
     {"nue_nu_E", HighFive::AtomicType<float>{}},
     {"nue_had_E", HighFive::AtomicType<float>{}},
     {"nue_lep_E", HighFive::AtomicType<float>{}},
-    {"nue_reco_method", HighFive::AtomicType<int>{}}
+    {"nue_reco_method", HighFive::AtomicType<int>{}},
+    {"eRecoP", HighFive::AtomicType<float>{}},
+    {"eRecoN", HighFive::AtomicType<float>{}},
+    {"eRecoPip", HighFive::AtomicType<float>{}},
+    {"eRecoPim", HighFive::AtomicType<float>{}},
+    {"eRecoPi0", HighFive::AtomicType<float>{}},
+    {"eRecoOther", HighFive::AtomicType<float>{}},
+    {"eDepP", HighFive::AtomicType<float>{}},
+    {"eDepN", HighFive::AtomicType<float>{}},
+    {"eDepPip", HighFive::AtomicType<float>{}},
+    {"eDepPim", HighFive::AtomicType<float>{}},
+    {"eDepPi0", HighFive::AtomicType<float>{}},
+    {"eDepOther", HighFive::AtomicType<float>{}}
   };
 }
 
@@ -139,7 +164,8 @@ private:
     int eventID,
     std::string& CVNResultsLabel,
     std::string& numuEResultsLabel,
-    std::string& nueEResultsLabel
+    std::string& nueEResultsLabel,
+    std::string& hitsLabel
   );
 
   // Members
@@ -153,6 +179,7 @@ private:
   std::string fCVNResultsLabel;
   std::string fNumuEResultsLabel;
   std::string fNueEResultsLabel;
+  std::string fHitsLabel;
 
   std::string fNDFDH5FileLoc;
 };
@@ -166,11 +193,13 @@ extrapolation::AddFDReco::AddFDReco(fhicl::ParameterSet const& p)
   fNumuEResultsLabel = p.get<std::string>("NumuEResultsLabel");
   fNueEResultsLabel  = p.get<std::string>("NueEResultsLabel");
   fNDFDH5FileLoc     = p.get<std::string>("NDFDH5FileLoc");
+  fHitsLabel         = p.get<std::string>("HitsLabel");
 
   consumes<std::vector<sim::SimEnergyDeposit>>(fEventIDSEDLabel);
   consumes<std::vector<cvn::Result>>(fCVNResultsLabel);
   consumes<dune::EnergyRecoOutput>(fNumuEResultsLabel);
   consumes<dune::EnergyRecoOutput>(fNueEResultsLabel);
+  consumes<std::vector<recob::Hit>>(fHitsLabel);
 }
 
 void extrapolation::AddFDReco::analyze(art::Event const& e)
@@ -180,7 +209,9 @@ void extrapolation::AddFDReco::analyze(art::Event const& e)
   int eventID = (*eventIDSED)[0].TrackID();
 
   // Store reco for this event
-  recoFD eventReco = getReco(e, eventID, fCVNResultsLabel, fNumuEResultsLabel, fNueEResultsLabel);
+  recoFD eventReco = getReco(
+    e, eventID, fCVNResultsLabel, fNumuEResultsLabel, fNueEResultsLabel, fHitsLabel
+  );
   fReco.push_back(eventReco);
 }
 
@@ -199,7 +230,8 @@ recoFD extrapolation::AddFDReco::getReco(
   art::Event const& e, int eventID,
   std::string& CVNResultsLabel,
   std::string& numuEResultsLabel,
-  std::string& nueEResultsLabel
+  std::string& nueEResultsLabel,
+  std::string& hitsLabel
 )
 {
   // Get results from CVN
@@ -212,10 +244,6 @@ recoFD extrapolation::AddFDReco::getReco(
   float nueScore = validCVN ? CVNResults->at(0).GetNueProbability() : -999;
   float ncScore = validCVN ? CVNResults->at(0).GetNCProbability() : -999;
   float nutauScore = validCVN ? CVNResults->at(0).GetNutauProbability() : -999;
-
-  // Get nu E reco information
-  const auto numuEOut = e.getValidHandle<dune::EnergyRecoOutput>(numuEResultsLabel);
-  const auto nueEOut = e.getValidHandle<dune::EnergyRecoOutput>(nueEResultsLabel);
 
   // Get antineutrino score
   float antiNuScore = validCVN ? CVNResults->at(0).GetIsAntineutrinoProbability() : -999;
@@ -238,6 +266,10 @@ recoFD extrapolation::AddFDReco::getReco(
   float neutron2Score = validCVN ? CVNResults->at(0).Get2neutronsProbability() : -999;
   float neutronNScore = validCVN ? CVNResults->at(0).GetNneutronsProbability() : -999;
 
+  // Get nu E reco information
+  const auto numuEOut = e.getValidHandle<dune::EnergyRecoOutput>(numuEResultsLabel);
+  const auto nueEOut = e.getValidHandle<dune::EnergyRecoOutput>(nueEResultsLabel);
+
   float numuNuE = (float)numuEOut->fNuLorentzVector.E();
   float numuHadE = (float)numuEOut->fHadLorentzVector.E();
   float numuLepE = (float)numuEOut->fLepLorentzVector.E();
@@ -249,6 +281,12 @@ recoFD extrapolation::AddFDReco::getReco(
   float nueHadE = (float)nueEOut->fHadLorentzVector.E();
   float nueLepE = (float)nueEOut->fLepLorentzVector.E();
   int nueRecoMethod = (int)nueEOut->recoMethodUsed;
+
+  // Get depositions by particle for a visible energy analysis variable
+  const auto hits = e.getValidHandle<std::vector<recob::Hit>>(hitsLabel);
+
+  float eRecoP = 0., eRecoN = 0., eRecoPip = 0., eRecoPim = 0., eRecoPi0 = 0., eRecoOther = 0.;
+  float eDepP = 0., eDepN = 0., eDepPip = 0., eDepPim = 0., eDepPi0 = 0., eDepOther = 0.;
 
   recoFD eventReco = {
     eventID,
@@ -282,7 +320,19 @@ recoFD extrapolation::AddFDReco::getReco(
     nueNuE,
     nueHadE,
     nueLepE,
-    nueRecoMethod
+    nueRecoMethod,
+    eRecoP,
+    eRecoN,
+    eRecoPip,
+    eRecoPim,
+    eRecoPi0,
+    eRecoOther,
+    eDepP,
+    eDepN,
+    eDepPip,
+    eDepPim,
+    eDepPi0,
+    eDepOther
   };
 
   return eventReco;
