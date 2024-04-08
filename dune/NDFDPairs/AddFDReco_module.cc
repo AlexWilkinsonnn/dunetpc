@@ -6,6 +6,10 @@
 // Crated on 29 Feb 24 Alex Wilkinson
 // Dump reco data products to the larnd-sim HDF5 file
 // Made for creating a dataset of paired ND det resp and FD reco
+// 
+// NOTE Tried to add eDep... and eReco... analysis variables (https://cdcvs.fnal.gov/redmine/projects/dunetpc/repository/revisions/f5278ffb5f6cf3eab47ddacdde5cf994865109fb/entry/dune/CAFMaker/CAFMaker_module.cc) but realise they use truth information to associated with
+// the particle types.  So giving up but leaving some of the code in
+// commented out.
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -23,9 +27,11 @@
 #include "dune/FDSensOpt/FDSensOptData/EnergyRecoOutput.h"
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/DetectorInfoServices/DetectorClocksService.h"
-#include "lardataobj/RecoBase/Hit.h"
+// #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+// #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+// #include "lardataobj/RecoBase/Hit.h"
+// #include "larsim/MCCheater/BackTrackerService.h"
+// #include "larreco/Calorimetry/CalorimetryAlg.h"
 
 #include "highfive/H5DataSet.hpp"
 #include "highfive/H5File.hpp"
@@ -33,6 +39,7 @@
 #include "highfive/H5Object.hpp"
 #include "highfive/H5DataType.hpp"
 #include "highfive/H5DataSpace.hpp"
+
 
 #include <string>
 #include <vector>
@@ -71,18 +78,18 @@ typedef struct recoFD {
   float nue_had_E;
   float nue_lep_E;
   int nue_reco_method;
-  float eRecoP;
-  float eRecoN;
-  float eRecoPip;
-  float eRecoPim;
-  float eRecoPi0;
-  float eRecoOther;
-  float eDepP;
-  float eDepN;
-  float eDepPip;
-  float eDepPim;
-  float eDepPi0;
-  float eDepOther;
+  // float eRecoP;
+  // float eRecoN;
+  // float eRecoPip;
+  // float eRecoPim;
+  // float eRecoPi0;
+  // float eRecoOther;
+  // float eDepP;
+  // float eDepN;
+  // float eDepPip;
+  // float eDepPim;
+  // float eDepPi0;
+  // float eDepOther;
 } recoFD;
 
 HighFive::CompoundType make_recoFD() {
@@ -119,18 +126,18 @@ HighFive::CompoundType make_recoFD() {
     {"nue_had_E", HighFive::AtomicType<float>{}},
     {"nue_lep_E", HighFive::AtomicType<float>{}},
     {"nue_reco_method", HighFive::AtomicType<int>{}},
-    {"eRecoP", HighFive::AtomicType<float>{}},
-    {"eRecoN", HighFive::AtomicType<float>{}},
-    {"eRecoPip", HighFive::AtomicType<float>{}},
-    {"eRecoPim", HighFive::AtomicType<float>{}},
-    {"eRecoPi0", HighFive::AtomicType<float>{}},
-    {"eRecoOther", HighFive::AtomicType<float>{}},
-    {"eDepP", HighFive::AtomicType<float>{}},
-    {"eDepN", HighFive::AtomicType<float>{}},
-    {"eDepPip", HighFive::AtomicType<float>{}},
-    {"eDepPim", HighFive::AtomicType<float>{}},
-    {"eDepPi0", HighFive::AtomicType<float>{}},
-    {"eDepOther", HighFive::AtomicType<float>{}}
+    // {"eRecoP", HighFive::AtomicType<float>{}},
+    // {"eRecoN", HighFive::AtomicType<float>{}},
+    // {"eRecoPip", HighFive::AtomicType<float>{}},
+    // {"eRecoPim", HighFive::AtomicType<float>{}},
+    // {"eRecoPi0", HighFive::AtomicType<float>{}},
+    // {"eRecoOther", HighFive::AtomicType<float>{}},
+    // {"eDepP", HighFive::AtomicType<float>{}},
+    // {"eDepN", HighFive::AtomicType<float>{}},
+    // {"eDepPip", HighFive::AtomicType<float>{}},
+    // {"eDepPim", HighFive::AtomicType<float>{}},
+    // {"eDepPi0", HighFive::AtomicType<float>{}},
+    // {"eDepOther", HighFive::AtomicType<float>{}}
   };
 }
 
@@ -164,12 +171,13 @@ private:
     int eventID,
     std::string& CVNResultsLabel,
     std::string& numuEResultsLabel,
-    std::string& nueEResultsLabel,
-    std::string& hitsLabel
+    std::string& nueEResultsLabel
+    // std::string& hitsLabel
   );
 
   // Members
   HighFive::File* fFile;
+  // calo::CalorimetryAlg fCaloAlg;
 
   // Data to write out to hdf5
   std::vector<recoFD> fReco;
@@ -186,20 +194,20 @@ private:
 
 
 extrapolation::AddFDReco::AddFDReco(fhicl::ParameterSet const& p)
-  : EDAnalyzer(p)
+  : EDAnalyzer(p) // , fCaloAlg(pset.get<fhicl::ParameterSet>("CalorimetryAlg"))
 {
   fEventIDSEDLabel   = p.get<std::string>("EventIDSEDLabel");
   fCVNResultsLabel   = p.get<std::string>("CVNResultsLabel");
   fNumuEResultsLabel = p.get<std::string>("NumuEResultsLabel");
   fNueEResultsLabel  = p.get<std::string>("NueEResultsLabel");
   fNDFDH5FileLoc     = p.get<std::string>("NDFDH5FileLoc");
-  fHitsLabel         = p.get<std::string>("HitsLabel");
+  // fHitsLabel         = p.get<std::string>("HitsLabel");
 
   consumes<std::vector<sim::SimEnergyDeposit>>(fEventIDSEDLabel);
   consumes<std::vector<cvn::Result>>(fCVNResultsLabel);
   consumes<dune::EnergyRecoOutput>(fNumuEResultsLabel);
   consumes<dune::EnergyRecoOutput>(fNueEResultsLabel);
-  consumes<std::vector<recob::Hit>>(fHitsLabel);
+  // consumes<std::vector<recob::Hit>>(fHitsLabel);
 }
 
 void extrapolation::AddFDReco::analyze(art::Event const& e)
@@ -210,7 +218,7 @@ void extrapolation::AddFDReco::analyze(art::Event const& e)
 
   // Store reco for this event
   recoFD eventReco = getReco(
-    e, eventID, fCVNResultsLabel, fNumuEResultsLabel, fNueEResultsLabel, fHitsLabel
+    e, eventID, fCVNResultsLabel, fNumuEResultsLabel, fNueEResultsLabel // , fHitsLabel
   );
   fReco.push_back(eventReco);
 }
@@ -230,8 +238,8 @@ recoFD extrapolation::AddFDReco::getReco(
   art::Event const& e, int eventID,
   std::string& CVNResultsLabel,
   std::string& numuEResultsLabel,
-  std::string& nueEResultsLabel,
-  std::string& hitsLabel
+  std::string& nueEResultsLabel
+  // std::string& hitsLabel
 )
 {
   // Get results from CVN
@@ -283,10 +291,74 @@ recoFD extrapolation::AddFDReco::getReco(
   int nueRecoMethod = (int)nueEOut->recoMethodUsed;
 
   // Get depositions by particle for a visible energy analysis variable
-  const auto hits = e.getValidHandle<std::vector<recob::Hit>>(hitsLabel);
+  // const auto hits = e.getValidHandle<std::vector<recob::Hit>>(hitsLabel);
+  // art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  // auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  // double t0 = detprop->TriggerOffset();
 
-  float eRecoP = 0., eRecoN = 0., eRecoPip = 0., eRecoPim = 0., eRecoPi0 = 0., eRecoOther = 0.;
-  float eDepP = 0., eDepN = 0., eDepPip = 0., eDepPim = 0., eDepPi0 = 0., eDepOther = 0.;
+  // float eRecoP = 0., eRecoN = 0., eRecoPip = 0., eRecoPim = 0., eRecoPi0 = 0., eRecoOther = 0.;
+  // float eDepP = 0., eDepN = 0., eDepPip = 0., eDepPim = 0., eDepPi0 = 0., eDepOther = 0.;
+
+  // std::map<int,double> tidCharge;
+  // std::map<int,double> tidEDep;
+  // double totCharge = 0.;
+  // for (const recob::Hit hit : *hits) {
+  //   const double charge = hit->Integral();
+  //   const double charge_eLifetimeCorrected =
+  //     charge * fCaloAlg.LifetimeCorrection(hit->PeakTime(), t0);
+
+  //   double deposited_energy = 0;
+  //   if (hit->WireID().Plane == 2) {
+  //     deposited_energy = 
+  //       fCaloAlg.ElectronsFromADCArea(charge_eLifetimeCorrected , 2) *
+  //       (1.0 / fRecombFactor) /
+  //       util::kGeVToElectrons;
+  //   }
+
+  //   std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToTrackIDEs(hit);
+
+  //   double tote = 0.0;
+  //   for (const sim::TrackIDE : TrackIDs) {
+  //     tote += TrackID.energy;
+  //   }
+  //   for (const sim::TrackIDE : TrackIDs) {
+  //   // for(size_t e = 0; e < TrackIDs.size(); ++e) {
+  //     const int primpdg = primary_pdg[TrackIDs[e].trackID];
+  //     if( abs(primpdg) != 11 && abs(primpdg) != 13 && abs(primpdg) != 15 ) {
+  //       tid_charge[TrackIDs[e].trackID] += charge*TrackIDs[e].energy/tote;
+
+  //       tid_eDep[TrackIDs[e].trackID] += deposited_energy*TrackIDs[e].energy/tote;
+  //       total_charge += charge*TrackIDs[e].energy/tote;
+  //     }
+  //   }
+  // }
+  // // choose the hadronic energy for the best reco
+  // double ehad = ( fCVNResultNue > fCVNResultNumu ? fRecoHadEnNue : fRecoHadEnNumu );
+  // for( std::map<int,double>::iterator itTid = tid_charge.begin(); itTid != tid_charge.end(); ++itTid ) {
+  // int tid = (*itTid).first;
+  // double energy = (*itTid).second * (ehad/total_charge);
+  // if( tid < 0 ) tid *= -1;
+  // int primpdg = primary_pdg[tid];
+  // if( primpdg == genie::kPdgProton ) eRecoP += energy;
+  // else if( primpdg == genie::kPdgNeutron ) eRecoN += energy;
+  // else if( primpdg == genie::kPdgPiP ) eRecoPip += energy;
+  // else if( primpdg == genie::kPdgPiM ) eRecoPim += energy;
+  // else if( primpdg == genie::kPdgPi0 ) eRecoPi0 += energy;
+  // else eRecoOther += energy;
+  // }
+  // // Deposited energy
+  // for( std::map<int,double>::iterator itTid = tid_eDep.begin(); itTid != tid_eDep.end(); ++itTid ) {
+  // int tid = (*itTid).first;
+  // double energy_deposited = (*itTid).second;
+  // if( tid < 0 ) tid *= -1;
+  // int primpdg = primary_pdg[tid];
+  // if( primpdg == genie::kPdgProton )       eDepP += energy_deposited;
+  // else if( primpdg == genie::kPdgNeutron ) eDepN += energy_deposited;
+  // else if( primpdg == genie::kPdgPiP )     eDepPip += energy_deposited;
+  // else if( primpdg == genie::kPdgPiM )     eDepPim += energy_deposited;
+  // else if( primpdg == genie::kPdgPi0 )     eDepPi0 += energy_deposited;
+  // else eRecoOther += energy_deposited;
+  // }
 
   recoFD eventReco = {
     eventID,
@@ -320,19 +392,19 @@ recoFD extrapolation::AddFDReco::getReco(
     nueNuE,
     nueHadE,
     nueLepE,
-    nueRecoMethod,
-    eRecoP,
-    eRecoN,
-    eRecoPip,
-    eRecoPim,
-    eRecoPi0,
-    eRecoOther,
-    eDepP,
-    eDepN,
-    eDepPip,
-    eDepPim,
-    eDepPi0,
-    eDepOther
+    nueRecoMethod
+    // eRecoP,
+    // eRecoN,
+    // eRecoPip,
+    // eRecoPim,
+    // eRecoPi0,
+    // eRecoOther,
+    // eDepP,
+    // eDepN,
+    // eDepPip,
+    // eDepPim,
+    // eDepPi0,
+    // eDepOther
   };
 
   return eventReco;

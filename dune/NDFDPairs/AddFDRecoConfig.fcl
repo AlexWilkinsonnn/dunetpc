@@ -8,7 +8,7 @@ AddFDReco:
   CVNResultsLabel:   "cvneval:cvnresult:"
   NumuEResultsLabel: "energyreconumu::"
   NueEResultsLabel:  "energyreconue::"
-  HitsLabel:         "linecluster"
+  // HitsLabel:         "linecluster"
 
   NDFDH5FileLoc: ""
 }
