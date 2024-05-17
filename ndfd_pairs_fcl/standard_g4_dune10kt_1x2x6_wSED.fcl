@@ -13,5 +13,3 @@ services.LArG4Parameters.EnabledPhysics: [ "Em",
                                            "Stopping",
                                            "NeutronTrackingCut" ]
 services.LArG4Parameters.FillSimEnergyDeposits: true
-
-

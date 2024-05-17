@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+AddFDSED:
+{
+  module_type: "AddFDSED"
+
+  SEDActiveLabel: "largeant:TPCActive:G4wSED"
+  SEDOtherLabel: "largeant:Other:G4wSED"
+
+  NDFDH5FileLoc: ""
+}
+
+END_PROLOG
