@@ -33,6 +33,7 @@
 
 #include <string>
 #include <vector>
+#include <math.h>
 
 typedef struct depo {
   int eventID;
@@ -118,6 +119,8 @@ public:
   void beginJob() override;
   void endJob() override;
 
+  double calcSEDdx(const sim::SimEnergyDeposit& SED);
+
 private:
   // Methods
 
@@ -171,7 +174,7 @@ void extrapolation::AddFDSED::analyze(art::Event const& e)
       SED.T1(),
       SED.T0(),
       SED.T(),
-      -999.0,
+      calcSEDdx(SED),
       -999.0,
       SED.E(),
       0
@@ -193,13 +196,22 @@ void extrapolation::AddFDSED::analyze(art::Event const& e)
       SED.T1(),
       SED.T0(),
       SED.T(),
-      -999.0,
+      calcSEDdx(SED),
       -999.0,
       SED.E(),
       0
     };
     fSEDDepos.push_back(d);
   }
+}
+
+double extrapolation::AddFDSED::calcSEDdx(const sim::SimEnergyDeposit& SED)
+{
+  const double deltaX = SED.EndX() - SED.StartX();
+  const double deltaY = SED.EndY() - SED.StartY();
+  const double deltaZ = SED.EndZ() - SED.StartZ();
+  double dx = std::sqrt(pow(deltaX, 2) + pow(deltaY, 2) + pow(deltaZ, 2));
+  return dx;
 }
 
 void extrapolation::AddFDSED::beginJob()
