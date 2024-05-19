@@ -209,7 +209,7 @@ void extrapolation::AddFDSED::beginJob()
 
 void extrapolation::AddFDSED::endJob()
 {
-  fFile->createDataSet("fd_tdr_deps", fSEDDepos);
+  fFile->createDataSet("fd_deps", fSEDDepos);
   fFile->createDataSet("fd_vertices", fSEDEventIDs);
 }
 
