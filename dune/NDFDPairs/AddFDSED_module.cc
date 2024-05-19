@@ -5,6 +5,8 @@
 //
 // Crated on 16 May 24 Alex Wilkinson
 // Dump SimEnergryDeposits to the ndfd pair HDF5 file,
+// Also dump a dummy vertex object that contains the eventID for
+// compatibility with later LoadFDDepos.
 // This is so we do the ionisation and drift with newer dune software
 // (using duneextrapolation) to replicate the way do FD simulation for
 // the paired dataset.
@@ -76,7 +78,24 @@ HighFive::CompoundType make_depo() {
   };
 }
 
+typedef struct vertex {
+  int eventID;
+  double x_vert;
+  double y_vert;
+  double z_vert;
+} depoVtx;
+
+HighFive::CompoundType make_vertex() {
+  return {
+    {"eventID", HighFive::AtomicType<int>{}},
+    {"x_vert", HighFive::AtomicType<double>{}},
+    {"y_vert", HighFive::AtomicType<double>{}},
+    {"z_vert", HighFive::AtomicType<double>{}},
+  };
+}
+
 HIGHFIVE_REGISTER_TYPE(depo, make_depo)
+HIGHFIVE_REGISTER_TYPE(vertex, make_vertex)
 
 namespace extrapolation {
   class AddFDSED;
@@ -107,6 +126,7 @@ private:
 
   // Data to write out to hdf5
   std::vector<depo> fSEDDepos;
+  std::vector<vertex> fSEDEventIDs;
 
   // Product labels
   std::string fSEDActiveLabel;
@@ -132,6 +152,10 @@ void extrapolation::AddFDSED::analyze(art::Event const& e)
   const auto ActiveSEDs = e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(fSEDActiveLabel);
   const auto OtherSEDs = e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(fSEDOtherLabel);
   int eventID = (int)e.id().event();
+
+  const vertex v = { eventID, -999.0, -999.0, -999.0 };
+  fSEDEventIDs.push_back(v);
+
   for (const sim::SimEnergyDeposit& SED : *ActiveSEDs) {
     const depo d = {
       eventID,
@@ -185,8 +209,8 @@ void extrapolation::AddFDSED::beginJob()
 
 void extrapolation::AddFDSED::endJob()
 {
-  // Write reco to hdf5
   fFile->createDataSet("fd_tdr_deps", fSEDDepos);
+  fFile->createDataSet("fd_vertices", fSEDEventIDs);
 }
 
 DEFINE_ART_MODULE(extrapolation::AddFDSED)
