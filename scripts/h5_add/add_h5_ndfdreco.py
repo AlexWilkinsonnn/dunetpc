@@ -34,11 +34,13 @@ def fill_h5(f_paths, f_out):
             with h5py.File(f_name) as f_in:
                 if "fd_reco" in f_in.keys() and "nd_paramreco" in f_in.keys():
                     nd_reco = f_in["nd_paramreco"]
+                    nd_reco_part = f_in["nd_paramreco_part"]
                     fd_reco = f_in["fd_reco"]
                     fd_vertices = f_in["fd_vertices"]
 
                     f_out.create_group(group_name)
                     f_out[group_name].create_dataset("nd_paramreco", data=nd_reco)
+                    f_out[group_name].create_dataset("nd_paramreco_part", data=nd_reco_part)
                     f_out[group_name].create_dataset("fd_reco", data=fd_reco)
                     f_out[group_name].create_dataset("fd_vertices", data=fd_vertices)
 
