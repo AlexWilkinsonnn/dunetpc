@@ -79,8 +79,8 @@ lar -c standard_reco_dune10kt_nu_1x2x6.fcl -s LoadedFDSimChannelsTrim_detsimnoop
 lar -c select_ana_dune10kt_nu.fcl -s LoadedFDSimChannelsTrim_detsimnoopt_reco.root -n -1
 
 # Add FD Reco to H5 file
-lar -c ./run_AddFDReco.fcl -s *_merged.root -n -1
-lar -c ./run_AddFDRecoTrim.fcl -s *_merged.root -n -1
+lar -c ./run_AddFDReco.fcl -s LoadedFDSimChannels_detsimnoopt_reco_*_merged.root -n -1
+lar -c ./run_AddFDRecoTrim.fcl -s *LoadedFDSimChannelsTrim_detsimnoopt_reco_*_merged.root -n -1
 
 ls -lrth
 
@@ -91,4 +91,3 @@ fi
 if [ "$SAVE_COMPLETE_PAIR" = true ]; then
   ifdh cp ${input_name} ${COMPLETE_PAIR_OUTPUT}/${input_name%.*}_fdreco.h5
 fi
-
