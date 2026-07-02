@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+LoadFDSimChannelsTrim:
+{
+  module_type: "LoadFDSimChannelsTrim"
+
+  NDFDH5FileLoc: ""
+}
+
+END_PROLOG

@@ -6,8 +6,8 @@
 ################################################################################
 # Options
 
-FDRECO_PAIR_OUTPUT="/pnfs/dune/scratch/users/awilkins/larbath_ndfd_pairs/tdr_sample/fdreco_artroot"
-COMPLETE_PAIR_OUTPUT="/pnfs/dune/scratch/users/awilkins/larbath_ndfd_pairs/tdr_sample/pair_complete_ndfd"
+FDRECO_PAIR_OUTPUT="/pnfs/dune/scratch/users/colweber/larbath_ndfd_pairs/tdr_sample/fdreco_artroot"
+COMPLETE_PAIR_OUTPUT="/pnfs/dune/scratch/users/colweber/larbath_ndfd_pairs/tdr_sample/pair_complete_ndfd"
 
 SAVE_FDRECO=false
 SAVE_COMPLETE_PAIR=true # turn this on if not testing!
@@ -53,6 +53,8 @@ input_file_local=$PWD/$input_name
 cp ${INPUT_TAR_DIR_LOCAL}/srcs/dunetpc/dune/NDFDPairs/run_fcls/*.fcl .
 sed -i "s#physics.producers.largeant.NDFDH5FileLoc: \"\"#physics.producers.largeant.NDFDH5FileLoc: \"${input_file_local}\"#" run_LoadFDSimChannels.fcl
 sed -i "s#physics.analyzers.addreco.NDFDH5FileLoc: \"\"#physics.analyzers.addreco.NDFDH5FileLoc: \"${input_file_local}\"#" run_AddFDReco.fcl
+sed -i "s#physics.producers.largeant.NDFDH5FileLoc: \"\"#physics.producers.largeant.NDFDH5FileLoc: \"${input_file_local}\"#" run_LoadFDSimChannelsTrim.fcl
+sed -i "s#physics.analyzers.addreco.NDFDH5FileLoc: \"\"#physics.analyzers.addreco.NDFDH5FileLoc: \"${input_file_local}\"#" run_AddFDRecoTrim.fcl
 
 ls -lrth
 
@@ -70,8 +72,15 @@ lar -c standard_detsim_dune10kt_nooptdetsim_1x2x6.fcl -s LoadedFDSimChannels.roo
 lar -c standard_reco_dune10kt_nu_1x2x6.fcl -s LoadedFDSimChannels_detsimnoopt.root -n -1
 lar -c select_ana_dune10kt_nu.fcl -s LoadedFDSimChannels_detsimnoopt_reco.root -n -1
 
+# Repeat for the trimmed events
+lar -c ./run_LoadFDSimChannelsTrim.fcl -n $num_events
+lar -c standard_detsim_dune10kt_nooptdetsim_1x2x6.fcl -s LoadedFDSimChannelsTrim.root -n -1
+lar -c standard_reco_dune10kt_nu_1x2x6.fcl -s LoadedFDSimChannelsTrim_detsimnoopt.root -n -1
+lar -c select_ana_dune10kt_nu.fcl -s LoadedFDSimChannelsTrim_detsimnoopt_reco.root -n -1
+
 # Add FD Reco to H5 file
 lar -c ./run_AddFDReco.fcl -s *_merged.root -n -1
+lar -c ./run_AddFDRecoTrim.fcl -s *_merged.root -n -1
 
 ls -lrth
 
