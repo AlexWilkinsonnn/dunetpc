@@ -32,7 +32,9 @@ def fill_h5(f_paths, f_out):
             print(e)
         else:
             with h5py.File(f_name) as f_in:
-                if "fd_reco" in f_in.keys() and "nd_paramreco" in f_in.keys():
+                if ("fd_reco" in f_in.keys() and "nd_paramreco" in f_in.keys() and 
+                "nd_paramreco_part" in f_in.keys() and "fd_vertices" in f_in.keys() and 
+                "fd_reco_trim" in f_in.keys() and "fd_vertices_trim" in f_in.keys()):
                     nd_reco = f_in["nd_paramreco"]
                     nd_reco_part = f_in["nd_paramreco_part"]
                     fd_reco = f_in["fd_reco"]
@@ -50,7 +52,8 @@ def fill_h5(f_paths, f_out):
 
                     print(f"Added {group_name}")
                 else:
-                    print(f"Missing fd_reco or nd_paramreco for {f_path}:\n({f_in.keys()})")
+                    print(f"Missing branch for {f_path}:\n({f_in.keys()})")
+                    print(f"Need keys for 'nd_paramreco', 'nd_paramreco_part', 'fd_reco', \n'fd_vertices', 'fd_reco_trim', and 'fd_vertices_trim")
 
         proc = subprocess.Popen(["rm", "-v", f_name], stdout=subprocess.PIPE)
         proc.wait()
